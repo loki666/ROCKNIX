@@ -12,5 +12,24 @@ PKG_TOOLCHAIN="manual"
 
 makeinstall_target() {
   mkdir -p ${INSTALL}/usr/share/themes/${PKG_NAME}
-    cp -rf * ${INSTALL}/usr/share/themes/${PKG_NAME}
+  cp -rf * ${INSTALL}/usr/share/themes/${PKG_NAME}
+  
+  THEME_FILE="${INSTALL}/usr/share/themes/${PKG_NAME}/theme.xml"
+  
+  if [[ -f "${THEME_FILE}" ]]; then
+    sed -i -e '
+      /<include name="knulli" displayName="\${subset.themeColors.knulli}" >\.\/_inc\/variables\/themeColors-knulli\.xml<\/include>/{
+        h
+        s|<include name="knulli" displayName="${subset.themeColors.knulli}" >./_inc/variables/themeColors-knulli.xml</include>|<include name="rocknix" displayName="${subset.themeColors.rocknix}" >./_inc/variables/themeColors-rocknix.xml</include>|
+        x
+      }
+      /<include name="rocknix" displayName="\${subset.themeColors.rocknix}" >\.\/_inc\/variables\/themeColors-rocknix\.xml<\/include>/{
+        s|<include name="rocknix" displayName="${subset.themeColors.rocknix}" >./_inc/variables/themeColors-rocknix.xml</include>|<include name="knulli" displayName="${subset.themeColors.knulli}" >./_inc/variables/themeColors-knulli.xml</include>|
+        G
+      }
+    ' "${THEME_FILE}"
+  else
+    echo "not found: ${THEME_FILE}"
+  fi
 }
+
