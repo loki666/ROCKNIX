@@ -2,7 +2,7 @@
 # Copyright (C) 2024-present ROCKNIX (https://github.com/ROCKNIX)
 
 PKG_NAME="u-boot"
-PKG_VERSION="v2025.07-rc3"
+PKG_VERSION="v2026.01"
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.denx.de/wiki/U-Boot"
 PKG_URL="https://github.com/u-boot/u-boot/archive/${PKG_VERSION}.tar.gz"
@@ -19,7 +19,7 @@ if [ -n "${UBOOT_FIRMWARE}" ]; then
 fi
 
 configure_package() {
-  PKG_UBOOT_CONFIG="anbernic_rg35xx_h700_defconfig"
+  PKG_UBOOT_CONFIG="anbernic_rg35xx_h700_lpddr3_defconfig"
   PKG_BL31="$(get_build_dir atf)/build/sun50i_h616/release/bl31.bin"
 }
 
