@@ -1,0 +1,28 @@
+From 6559ce98b0d29ad4fb8ce1595e87e629ccf2f962 Mon Sep 17 00:00:00 2001
+From: Philippe Simons <simons.philippe@gmail.com>
+Date: Wed, 1 Apr 2026 22:21:52 +0200
+Subject: [PATCH] Update sun50i-h700-anbernic-rg35xx-2024.dts
+
+LPDDR3 is using 1.2v
+---
+ .../boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-2024.dts   | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-2024.dts b/arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-2024.dts
+index 1a750c5f6fac..fdfd9e106ad2 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-2024.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h700-anbernic-rg35xx-2024.dts
+@@ -271,8 +271,8 @@ reg_dcdc2: dcdc2 {
+ 
+ 			reg_dcdc3: dcdc3 {
+ 				regulator-always-on;
+-				regulator-min-microvolt = <1100000>;
+-				regulator-max-microvolt = <1100000>;
++				regulator-min-microvolt = <1200000>;
++				regulator-max-microvolt = <1200000>;
+ 				regulator-name = "vdd-dram";
+ 			};
+ 
+-- 
+2.53.0
+
