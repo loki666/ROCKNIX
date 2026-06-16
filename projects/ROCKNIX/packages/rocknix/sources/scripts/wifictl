@@ -126,35 +126,45 @@ has_ap_mode() {
   fi
 }
 
+connect() {
+  if [ "${WIFI_TYPE}" = "1" ] && \
+    [ "${ADHOC_CLIENT_ID}" = "1" ]; then
+    create_adhoc >/dev/null 2>&1
+  else
+    destroy_adhoc >/dev/null 2>&1
+    # Allow NetworkManager time to re-initialize the device after setting managed=yes
+    sleep 3
+    connect_wifi >/dev/null 2>&1
+  fi
+}
+
+disconnect() {
+  if [ "${WIFI_TYPE}" = "1" ]; then
+    destroy_adhoc >/dev/null 2>&1
+    iwctl ap ${WIFI_DEV} stop 2>/dev/null
+  else
+    "${NMCLI}" device disconnect "${WIFI_DEV}" >/dev/null 2>&1
+  fi
+}
+
 case "${1}" in
   enable)
     rfkill unblock wifi
+    sleep 1
+    connect
     ;;
   disable)
     rfkill block wifi
     ;;
   connect)
-    if [ "${WIFI_TYPE}" = "1" ] && \
-       [ "${ADHOC_CLIENT_ID}" = "1" ]; then
-      create_adhoc >/dev/null 2>&1
-    else
-      destroy_adhoc >/dev/null 2>&1
-      # Allow NetworkManager time to re-initialize the device after setting managed=yes
-      sleep 3
-      connect_wifi >/dev/null 2>&1
-    fi
-  ;;
+    connect
+    ;;
   disconnect)
-    if [ "${WIFI_TYPE}" = "1" ]; then
-      destroy_adhoc >/dev/null 2>&1
-      iwctl ap ${WIFI_DEV} stop 2>/dev/null
-    else
-      "${NMCLI}" device disconnect "${WIFI_DEV}" >/dev/null 2>&1
-    fi
+    disconnect
     ;;
   reconnect)
-    /usr/bin/wifictl disconnect
-    /usr/bin/wifictl connect
+    disconnect
+    connect
     ;;
   list)
     list_wifi
@@ -166,7 +176,7 @@ case "${1}" in
     has_ap_mode
     ;;
   scan)
-    "${NMCLI}" dev wifi rescan ifname "${WIFI_DEV}" 2>/dev/null
+    nohup "${NMCLI}" dev wifi rescan ifname "${WIFI_DEV}" >/dev/null 2>&1 &
     ;;
   scanlist)
     "${NMCLI}" dev wifi rescan ifname "${WIFI_DEV}" 2>/dev/null
