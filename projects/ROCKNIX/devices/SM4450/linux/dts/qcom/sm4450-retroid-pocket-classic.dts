@@ -12,6 +12,7 @@
 #include <dt-bindings/clock/qcom,sm4450-dispcc.h>
 #include <dt-bindings/clock/qcom,sm4450-gcc.h>
 #include <dt-bindings/clock/qcom,sm4450-gpucc.h>
+#include <dt-bindings/dma/qcom-gpi.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/interconnect/qcom,icc.h>
@@ -171,6 +172,47 @@
 		regulator-boot-on;
 		startup-delay-us = <1000>;
 		pinctrl-0 = <&panel_2p8_en_default>;
+		pinctrl-names = "default";
+	};
+
+	vreg_panel_avdd: regulator-panel-avdd {
+		compatible = "regulator-fixed";
+		regulator-name = "vreg_panel_avdd";
+		regulator-min-microvolt = <5500000>;
+		regulator-max-microvolt = <5500000>;
+		gpio = <&tlmm 127 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		startup-delay-us = <1000>;
+		pinctrl-0 = <&panel_avdd_en_default>;
+		pinctrl-names = "default";
+	};
+
+	vreg_panel_vddio: regulator-panel-vddio {
+		compatible = "regulator-fixed";
+		regulator-name = "vreg_panel_vddio";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		gpio = <&pm7250b_gpios 11 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		startup-delay-us = <1000>;
+		pinctrl-0 = <&panel_vddio_en_default>;
+		pinctrl-names = "default";
+	};
+
+	vreg_panel_extdvdd: regulator-panel-extdvdd {
+		compatible = "regulator-fixed";
+		regulator-name = "vreg_panel_extdvdd";
+		regulator-min-microvolt = <1300000>;
+		regulator-max-microvolt = <1300000>;
+		gpio = <&pm7250b_gpios 12 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
+		startup-delay-us = <1000>;
+		pinctrl-0 = <&panel_extdvdd_en_default>;
 		pinctrl-names = "default";
 	};
 
@@ -421,9 +463,9 @@
 			regulator-max-microvolt = <3300000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
-		vreg_l4e_2p7: ldo4 {
-			regulator-name = "vreg_l4e_2p7";
-			regulator-min-microvolt = <2600000>;
+		vreg_l4e_3p0: ldo4 {
+			regulator-name = "vreg_l4e_3p0";
+			regulator-min-microvolt = <3000000>;
 			regulator-max-microvolt = <3312000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
@@ -1292,11 +1334,13 @@
 			};
 
 			panel@0 {
-				compatible = "boe,ch13726a";
+				compatible = "retroid,pocket-classic-panel", "chipwealth,ch13726a";
 				reg = <0>;
 
+				vdd-supply = <&vreg_l4e_3p0>;
 				vddio-supply = <&vreg_panel_1p8>;
-				vci-supply = <&vreg_panel_2p8>;
+				vdd1v2-supply = <&vreg_panel_extdvdd>;
+				avdd-supply = <&vreg_panel_2p8>;
 
 				reset-gpios = <&tlmm 92 GPIO_ACTIVE_LOW>;
 
@@ -1516,6 +1560,14 @@
 		bias-disable;
 	};
 
+	panel_avdd_en_default: panel-avdd-en-default-state {
+		pins = "gpio127";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high;
+	};
+
 	sdc2_default: sdc2-default-state {
 		clk-pins {
 			pins = "sdc2_clk";
@@ -1585,6 +1637,27 @@
 };
 
 &soc {
+	gpi_dma0: dma-controller@900000 {
+		compatible = "qcom,sm4450-gpi-dma", "qcom,sm6350-gpi-dma";
+		reg = <0x0 0x00900000 0x0 0x60000>;
+		interrupts = <GIC_SPI 244 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 245 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 246 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 247 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 248 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 249 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 250 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 251 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 252 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 253 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 254 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 255 IRQ_TYPE_LEVEL_HIGH>;
+		dma-channels = <12>;
+		dma-channel-mask = <0x3e>;
+		iommus = <&apps_smmu 0x176 0x0>;
+		#dma-cells = <3>;
+	};
+
 	qupv3_id_1: geniqup@9c0000 {
 		compatible = "qcom,geni-se-qup";
 		reg = <0x0 0x009c0000 0x0 0x2000>;
@@ -1691,6 +1764,41 @@
 };
 
 &qupv3_id_1 {
+	i2c1: i2c@984000 {
+		compatible = "qcom,geni-i2c";
+		reg = <0x0 0x00984000 0x0 0x4000>;
+		clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
+		clock-names = "se";
+		interrupts = <GIC_SPI 602 IRQ_TYPE_LEVEL_HIGH>;
+		dmas = <&gpi_dma0 0 1 QCOM_GPI_I2C>,
+		       <&gpi_dma0 1 1 QCOM_GPI_I2C>;
+		dma-names = "tx", "rx";
+		pinctrl-0 = <&qup_i2c1_default>;
+		pinctrl-names = "default";
+		clock-frequency = <400000>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		touchscreen@38 {
+			compatible = "focaltech,ft5452";
+			reg = <0x38>;
+
+			interrupt-parent = <&tlmm>;
+			interrupts = <13 IRQ_TYPE_LEVEL_LOW>;
+			reset-gpios = <&tlmm 12 GPIO_ACTIVE_LOW>;
+
+			vcc-supply = <&vreg_l4e_3p0>;
+
+			pinctrl-0 = <&ts_active>;
+			pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+			pinctrl-names = "default", "sleep";
+
+			touchscreen-size-x = <1080>;
+			touchscreen-size-y = <1240>;
+		};
+	};
+
 	uart3: serial@98c000 {
 		compatible = "qcom,geni-uart";
 		reg = <0x0 0x0098c000 0x0 0x4000>;
@@ -1801,6 +1909,34 @@
 		function = "qup1_se3";
 		drive-strength = <2>;
 		bias-pull-up;
+	};
+
+	qup_i2c1_default: qup-i2c1-default-state {
+		pins = "gpio10", "gpio11";
+		function = "qup0_se1";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	ts_active: ts-active-state {
+		pins = "gpio12", "gpio13";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	ts_int_suspend: ts-int-suspend-state {
+		pins = "gpio13";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	ts_reset_suspend: ts-reset-suspend-state {
+		pins = "gpio12";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
 	};
 };
 
@@ -2258,6 +2394,28 @@
 &pon_resin {
 	linux,code = <KEY_VOLUMEDOWN>;
 	status = "okay";
+};
+
+&pm7250b_gpios {
+	panel_vddio_en_default: panel-vddio-en-default-state {
+		pins = "gpio11";
+		function = "normal";
+		bias-disable;
+		qcom,drive-strength = <PMIC_GPIO_STRENGTH_MED>;
+		input-disable;
+		output-enable;
+		power-source = <0>;
+	};
+
+	panel_extdvdd_en_default: panel-extdvdd-en-default-state {
+		pins = "gpio12";
+		function = "normal";
+		bias-disable;
+		qcom,drive-strength = <PMIC_GPIO_STRENGTH_MED>;
+		input-disable;
+		output-enable;
+		power-source = <0>;
+	};
 };
 
 &pm7250b_vbus {
