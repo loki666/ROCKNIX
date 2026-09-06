@@ -847,7 +847,7 @@
 			     "qcom,usb-snps-hs-7nm-phy";
 		reg = <0x0 0x088e3000 0x0 0x120>;
 		#phy-cells = <0>;
-		clocks = <&rpmhcc RPMH_CXO_CLK>;
+		clocks = <&gcc GCC_EUSB3_0_CLKREF_EN>;
 		clock-names = "ref";
 		resets = <&gcc GCC_QUSB2PHY_PRIM_BCR>;
 		vdda-pll-supply = <&vreg_l5b_0p88>;
@@ -869,12 +869,14 @@
 			 <&gcc GCC_USB30_PRIM_MASTER_CLK>,
 			 <&gcc GCC_AGGRE_USB3_PRIM_AXI_CLK>,
 			 <&gcc GCC_USB30_PRIM_SLEEP_CLK>,
-			 <&gcc GCC_USB30_PRIM_MOCK_UTMI_CLK>;
+			 <&gcc GCC_USB30_PRIM_MOCK_UTMI_CLK>,
+			 <&gcc GCC_USB3_0_CLKREF_EN>;
 		clock-names = "cfg_noc",
 			      "core",
 			      "iface",
 			      "sleep",
-			      "mock_utmi";
+			      "mock_utmi",
+			      "xo";
 
 		assigned-clocks = <&gcc GCC_USB30_PRIM_MOCK_UTMI_CLK>,
 				  <&gcc GCC_USB30_PRIM_MASTER_CLK>;
@@ -906,6 +908,7 @@
 			iommus = <&apps_smmu 0x540 0x0>;
 			snps,dis_u2_susphy_quirk;
 			snps,dis_enblslpm_quirk;
+			snps,dis_u3_susphy_quirk;
 
 			phys = <&usb_1_hsphy>,
 			       <&usb_1_qmpphy QMP_USB43DP_USB3_PHY>;
